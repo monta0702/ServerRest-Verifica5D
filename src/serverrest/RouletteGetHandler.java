@@ -24,7 +24,7 @@ import java.util.Map;
  */
 
 
-public class DaFareGetHandler implements HttpHandler {
+public class RouletteGetHandler implements HttpHandler {
     
     // Istanza Gson configurata per pretty printing
     private final Gson gson = new GsonBuilder()
@@ -33,41 +33,52 @@ public class DaFareGetHandler implements HttpHandler {
     
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        
-        // Verifica che sia una richiesta GET
+
+        // Solo GET
         if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
             inviaErrore(exchange, 405, "Metodo non consentito. Usa GET");
             return;
         }
-        
+
         try {
-            // Estrae i parametri dalla query string
+            // Parametri: giocata, numero
             Map<String, String> parametri = estraiParametri(exchange.getRequestURI().getQuery());
-            
-            // Validazione parametri
-            if (validazioneParametri(parametri)) {
-                inviaErrore(exchange, 400, 
-                    "Parametri mancanti. Necessari: operando1, operando2, operatore");
+
+            // Validazione: se NON validi -> errore
+            if (!validazioneParametri(parametri)) {
+                inviaErrore(exchange, 400, "Parametri mancanti. Necessari: giocata, numero");
                 return;
             }
-            
-            // Parsing dei valori
-            
-            
-            // Esegue la logica di calcolo
-            double risultato = RouletteService.logicaDiCalcolo();
-            
-            // Crea l'oggetto risposta
-            ResponseGiocata response = new ResponseGiocata(
-            );
-            
-            // GSON converte automaticamente l'oggetto Java in JSON
+
+            String giocataStr = parametri.get("giocata");
+            String numeroStr = parametri.get("numero");
+
+            // Converte giocata (String) in Integer per RouletteService
+            // Assunzione: 0 = DISPARI, 1 = PARI (come nella RouletteService che ti ho dato)
+            Integer giocata;
+            if ("DISPARI".equalsIgnoreCase(giocataStr)) {
+                giocata = 0;
+            } else if ("PARI".equalsIgnoreCase(giocataStr)) {
+                giocata = 1;
+            } else {
+                throw new IllegalArgumentException("Giocata non valida. Valori ammessi: DISPARI o PARI");
+            }
+
+            // Logica: 1=vittoria, 0=sconfitta
+            int esito = RouletteService.logicaDiCalcolo(giocata, numeroStr, null);
+            boolean vittoria = (esito == 1);
+
+            // numero come int in risposta
+            int numero = Integer.parseInt(numeroStr);
+
+            // Crea risposta (3 campi)
+            ResponseGiocata response = new ResponseGiocata(giocata, numeroUscito, String.valueOf(vittoria));
+
             String jsonRisposta = gson.toJson(response);
-            
             inviaRisposta(exchange, 200, jsonRisposta);
-            
+
         } catch (NumberFormatException e) {
-            inviaErrore(exchange, 400, "Operandi non validi. Devono essere numeri");
+            inviaErrore(exchange, 400, "Numero non valido. Deve essere un intero tra 0 e 36");
         } catch (IllegalArgumentException e) {
             inviaErrore(exchange, 400, e.getMessage());
         } catch (Exception e) {

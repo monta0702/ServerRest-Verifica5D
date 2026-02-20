@@ -10,8 +10,8 @@ package serverrest;
  */
 public class ResponseGiocata {
     
-    private Integer numero1;
-    private String giocata;
+    private Integer giocata;
+    private String numeroUscito;
     private Boolean risultato;
     
     
@@ -20,27 +20,27 @@ public class ResponseGiocata {
     }
     
     // Costruttore con parametri
-   
-    public ResponseGiocata(Integer numero1, String giocata, Boolean risultato) {
-        this.numero1 = numero1;
+
+    public ResponseGiocata(Integer giocata, String numeroUscito, Boolean risultato) {
         this.giocata = giocata;
+        this.numeroUscito = numeroUscito;
         this.risultato = risultato;
     }
 
-    public Integer getNumero1() {
-        return numero1;
-    }
-
-    public void setNumero1(Integer numero1) {
-        this.numero1 = numero1;
-    }
-
-    public String getGiocata() {
+    public Integer getGiocata() {
         return giocata;
     }
 
-    public void setGiocata(String giocata) {
+    public void setGiocata(Integer giocata) {
         this.giocata = giocata;
+    }
+
+    public String getNumeroUscito() {
+        return numeroUscito;
+    }
+
+    public void setNumeroUscito(String numeroUscito) {
+        this.numeroUscito = numeroUscito;
     }
 
     public Boolean getRisultato() {
@@ -50,5 +50,6 @@ public class ResponseGiocata {
     public void setRisultato(Boolean risultato) {
         this.risultato = risultato;
     }
-
+   
+    
 }
