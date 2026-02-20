@@ -74,13 +74,13 @@ public class ServerRest {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         
         Map info = new HashMap<>();
-        info.put("messaggio", "Benvenuto alla Calcolatrice REST API");
+        info.put("messaggio", "Benvenuto Nella Roulette REST API");
         info.put("versione", "2.0.0");
         info.put("tecnologia", "Java + GSON");
         
         Map endpoints = new HashMap<>();
-        endpoints.put("POST", "/api/calcola/post");
-        endpoints.put("GET", "/api/calcola/get?operando1=X&operando2=Y&operatore=OP");
+        endpoints.put("POST", "/api/roulette/post");
+        endpoints.put("GET", "/api/roulette/get?numero1=Xnumero2=Y&giocata=GI");
         info.put("endpoints", endpoints);
         
         Map operatori = new HashMap<>();
