@@ -58,7 +58,7 @@ public class DaFareGetHandler implements HttpHandler {
             double risultato = DaFareService.logicaDiCalcolo();
             
             // Crea l'oggetto risposta
-            DaFareResponse response = new DaFareResponse(
+            ResponseGiocata response = new ResponseGiocata(
             );
             
             // GSON converte automaticamente l'oggetto Java in JSON
