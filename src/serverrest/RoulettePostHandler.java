@@ -26,7 +26,7 @@ import java.util.Map;
  */
 
 
-public class DaFarePostHandler implements HttpHandler {
+public class RoulettePostHandler implements HttpHandler {
     
     // Istanza Gson configurata per pretty printing
     private final Gson gson = new GsonBuilder()

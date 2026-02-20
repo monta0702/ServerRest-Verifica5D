@@ -34,7 +34,8 @@ public class ServerRest {
             HttpServer server = HttpServer.create(new InetSocketAddress(porta), 0);
             
             // Registra gli handler per gli endpoint
-           
+            server.createContext("/api/calcola/post", new RoulettePostHandler());
+            server.createContext("/api/calcola/get", new RouletteGetHandler());
             
             // Endpoint di benvenuto
             server.createContext("/", ServerRest::gestisciBenvenuto);
@@ -50,8 +51,8 @@ public class ServerRest {
             System.out.println("Porta: " + porta);
             System.out.println();
             System.out.println("Endpoint disponibili:");
-            System.out.println("  - POST: http://localhost:" + porta + "/DA FARE");
-            System.out.println("  - GET:  http://localhost:" + porta + "/DA FARE");
+            System.out.println("  - POST: http://localhost:" + porta + "/api/roulette/paridispari");
+            System.out.println("  - GET:  http://localhost:" + porta + "/api/roulette/paridispari");
             System.out.println("  - Info: http://localhost:" + porta + "/");
             System.out.println();
             System.out.println();
