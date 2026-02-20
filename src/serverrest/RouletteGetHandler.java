@@ -41,10 +41,9 @@ public class RouletteGetHandler implements HttpHandler {
         }
 
         try {
-            // Parametri: giocata, numero
+            
             Map<String, String> parametri = estraiParametri(exchange.getRequestURI().getQuery());
 
-            // Validazione: se NON validi -> errore
             if (!validazioneParametri(parametri)) {
                 inviaErrore(exchange, 400, "Parametri mancanti. Necessari: giocata, numero");
                 return;
@@ -53,8 +52,6 @@ public class RouletteGetHandler implements HttpHandler {
             String giocataStr = parametri.get("giocata");
             String numeroStr = parametri.get("numero");
 
-            // Converte giocata (String) in Integer per RouletteService
-            // Assunzione: 0 = DISPARI, 1 = PARI (come nella RouletteService che ti ho dato)
             Integer giocata;
             if ("DISPARI".equalsIgnoreCase(giocataStr)) {
                 giocata = 0;
@@ -64,15 +61,12 @@ public class RouletteGetHandler implements HttpHandler {
                 throw new IllegalArgumentException("Giocata non valida. Valori ammessi: DISPARI o PARI");
             }
 
-            // Logica: 1=vittoria, 0=sconfitta
             int esito = RouletteService.logicaDiCalcolo(giocata, numeroStr, null);
             boolean vittoria = (esito == 1);
 
-            // numero come int in risposta
             int numero = Integer.parseInt(numeroStr);
 
-            // Crea risposta (3 campi)
-            ResponseGiocata response = new ResponseGiocata(giocata, numeroUscito, String.valueOf(vittoria));
+            ResponseGiocata response = new ResponseGiocata(giocata, numeroStr, Boolean.valueOf(vittoria));
 
             String jsonRisposta = gson.toJson(response);
             inviaRisposta(exchange, 200, jsonRisposta);
