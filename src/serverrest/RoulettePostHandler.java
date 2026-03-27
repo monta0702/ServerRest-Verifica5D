@@ -28,53 +28,41 @@ import java.util.Map;
 
 public class RoulettePostHandler implements HttpHandler {
     
-    // Istanza Gson configurata per pretty printing
-    private final Gson gson = new GsonBuilder()
+     private final Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .create();
-    
+
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        
-        // Verifica che sia una richiesta POST
         if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
             inviaErrore(exchange, 405, "Metodo non consentito. Usa POST");
             return;
         }
-        
-        try {
-            // Legge il body della richiesta
-            BufferedReader reader = new BufferedReader(
-                new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8)
-            );
-            
-            // GSON converte automaticamente il JSON in oggetto Java
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8))) {
+
             RequestGiocata request = gson.fromJson(reader, RequestGiocata.class);
-            reader.close();
-            
-            // Validazione
+
             if (request == null) {
                 inviaErrore(exchange, 400, "Body della richiesta vuoto o non valido");
                 return;
             }
-            
-            if (validazioneParametri(request)) {
-                inviaErrore(exchange, 400, "Operatore mancante o vuoto");
+
+            if (!validazioneParametri(request)) {
+                inviaErrore(exchange, 400, "Parametri mancanti o non validi. Necessari: giocata, numero");
                 return;
             }
-            
-            // Chiama la logica di calcolo DA FARE
-           
-            
-            // Crea l'oggetto risposta DA FARE
-           ResponseGiocata response = new ResponseGiocata(
-            );
-            
-            // GSON converte automaticamente l'oggetto Java in JSON
+
+            String giocata = request.getGiocata().trim().toUpperCase();
+            String numero = request.getNumero().trim();
+
+            boolean vittoria = RouletteService.logicaDiCalcolo(giocata, numero);
+            ResponseGiocata response = new ResponseGiocata(giocata, numero, String.valueOf(vittoria));
+
             String jsonRisposta = gson.toJson(response);
-            
             inviaRisposta(exchange, 200, jsonRisposta);
-            
+
         } catch (JsonSyntaxException e) {
             inviaErrore(exchange, 400, "JSON non valido: " + e.getMessage());
         } catch (IllegalArgumentException e) {
@@ -83,41 +71,36 @@ public class RoulettePostHandler implements HttpHandler {
             inviaErrore(exchange, 500, "Errore interno del server: " + e.getMessage());
         }
     }
-    
-    // Validazione dei parametri (da implementare)
+
     private boolean validazioneParametri(RequestGiocata request) {
-        
-        return false;
+        if (request == null) {
+            return false;
+        }
+
+        return RouletteService.parametriValidi(request.getGiocata(), request.getNumero());
     }
 
-    /**
-     * Invia una risposta di successo
-     */
-    private void inviaRisposta(HttpExchange exchange, int codice, String jsonRisposta) 
+    private void inviaRisposta(HttpExchange exchange, int codice, String jsonRisposta)
             throws IOException {
-        
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
         exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
-        
+
         byte[] bytes = jsonRisposta.getBytes(StandardCharsets.UTF_8);
         exchange.sendResponseHeaders(codice, bytes.length);
-        
-        OutputStream os = exchange.getResponseBody();
-        os.write(bytes);
-        os.close();
+
+        try (OutputStream os = exchange.getResponseBody()) {
+            os.write(bytes);
+        }
     }
-    
-    /**
-     * Invia una risposta di errore in formato JSON
-     */
-    private void inviaErrore(HttpExchange exchange, int codice, String messaggio) 
+
+    private void inviaErrore(HttpExchange exchange, int codice, String messaggio)
             throws IOException {
-        
-        Map errore = new HashMap<>();
+        Map<String, Object> errore = new HashMap<>();
         errore.put("errore", messaggio);
         errore.put("status", codice);
-        
+
         String jsonErrore = gson.toJson(errore);
         inviaRisposta(exchange, codice, jsonErrore);
     }
+
 }
