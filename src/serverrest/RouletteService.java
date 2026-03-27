@@ -9,59 +9,60 @@ package serverrest;
  * @author delfo
  */
 public class RouletteService {
-    private static final int DISPARI = 0;
-    private static final int PARI = 1;
-    
-    /**
-     * Esegue l'operazione matematica richiesta
-     * 
-     * @param 
-     * @param 
-     * @param 
-     * @return 
-     * @throws IllegalArgumentException se ...
-     */
-    public static Integer logicaDiCalcolo(Integer giocata, String numeroUscito, Boolean risultato)
+    private RouletteService() {
+       
+    }
+
+    public static boolean logicaDiCalcolo(String giocata, String numero)
             throws IllegalArgumentException {
 
-        // Controllo parametri
-        if (!parametriValidi(giocata, numeroUscito)) {
+        if (!parametriValidi(giocata, numero)) {
             throw new IllegalArgumentException("Parametri non validi");
         }
 
+        int n;
         try {
-            int n = Integer.parseInt(numeroUscito);
-
-            
-            boolean vittoria = false;
-            if (n != 0) {
-                if (giocata == DISPARI) {
-                    vittoria = (n % 2 != 0);
-                } else if (giocata == PARI) {
-                    vittoria = (n % 2 == 0);
-                } else {
-                    throw new IllegalArgumentException("Opzione non valida. Opzione deve essere DISPARI(0) o PARI(1)");
-                }
-            }
-
-            return vittoria ? 1 : 0;
-
+            n = Integer.parseInt(numero);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Opzione non valida. Numero deve essere un intero tra 0 e 36");
+            throw new IllegalArgumentException("Numero non valido. Deve essere un intero tra 0 e 36");
         }
-    }
 
-    private static boolean parametriValidi(Integer giocata, String numeroUscito) {
-        if (giocata == null) return false;
-        if (numeroUscito == null || numeroUscito.trim().isEmpty()) return false;
+        if (n < 0 || n > 36) {
+            throw new IllegalArgumentException("Numero non valido. Deve essere compreso tra 0 e 36");
+        }
 
-        try {
-            int n = Integer.parseInt(numeroUscito);
-            if (n < 0 || n > 36) return false;
-        } catch (NumberFormatException e) {
+        String giocataNormalizzata = giocata.trim().toUpperCase();
+
+        if (!"PARI".equals(giocataNormalizzata) && !"DISPARI".equals(giocataNormalizzata)) {
+            throw new IllegalArgumentException("Giocata non valida. Valori ammessi: PARI o DISPARI");
+        }
+
+        if (n == 0) {
             return false;
         }
 
-        return true;
+        if ("PARI".equals(giocataNormalizzata)) {
+            return n % 2 == 0;
+        }
+
+        return n % 2 != 0;
     }
+
+    public static boolean parametriValidi(String giocata, String numero) {
+        if (giocata == null || giocata.trim().isEmpty()) {
+            return false;
+        }
+
+        if (numero == null || numero.trim().isEmpty()) {
+            return false;
+        }
+
+        try {
+            int n = Integer.parseInt(numero.trim());
+            return n >= 0 && n <= 36;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
 }
