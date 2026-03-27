@@ -26,53 +26,34 @@ import java.util.Map;
 
 public class RouletteGetHandler implements HttpHandler {
     
-    // Istanza Gson configurata per pretty printing
     private final Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .create();
-    
+
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-
-        // Solo GET
         if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
             inviaErrore(exchange, 405, "Metodo non consentito. Usa GET");
             return;
         }
 
         try {
-            
             Map<String, String> parametri = estraiParametri(exchange.getRequestURI().getQuery());
 
             if (!validazioneParametri(parametri)) {
-                inviaErrore(exchange, 400, "Parametri mancanti. Necessari: giocata, numero");
+                inviaErrore(exchange, 400, "Parametri mancanti o non validi. Necessari: giocata, numero");
                 return;
             }
 
-            String giocataStr = parametri.get("giocata");
-            String numeroStr = parametri.get("numero");
+            String giocata = parametri.get("giocata").trim().toUpperCase();
+            String numero = parametri.get("numero").trim();
 
-            Integer giocata;
-            if ("DISPARI".equalsIgnoreCase(giocataStr)) {
-                giocata = 0;
-            } else if ("PARI".equalsIgnoreCase(giocataStr)) {
-                giocata = 1;
-            } else {
-                throw new IllegalArgumentException("Giocata non valida. Valori ammessi: DISPARI o PARI");
-            }
-
-            int esito = RouletteService.logicaDiCalcolo(giocata, numeroStr, null);
-            boolean vittoria = (esito == 1);
-
-            int numero = Integer.parseInt(numeroStr);
-
-            ResponseGiocata response = new ResponseGiocata(giocata, numeroStr, Boolean.valueOf(vittoria));
+            boolean vittoria = RouletteService.logicaDiCalcolo(giocata, numero);
+            ResponseGiocata response = new ResponseGiocata(giocata, numero, String.valueOf(vittoria));
 
             String jsonRisposta = gson.toJson(response);
             inviaRisposta(exchange, 200, jsonRisposta);
 
-        } catch (NumberFormatException e) {
-            inviaErrore(exchange, 400, "Numero non valido. Deve essere un intero tra 0 e 36");
         } catch (IllegalArgumentException e) {
             inviaErrore(exchange, 400, e.getMessage());
         } catch (Exception e) {
@@ -80,67 +61,59 @@ public class RouletteGetHandler implements HttpHandler {
         }
     }
 
-    // Validazione dei parametri (da implementare)
     private boolean validazioneParametri(Map<String, String> parametri) {
-        
-        return false;
+        if (parametri == null) {
+            return false;
+        }
+
+        return RouletteService.parametriValidi(parametri.get("giocata"), parametri.get("numero"));
     }
-    
-    /**
-     * Estrae i parametri dalla query string
-     */
+
     private Map<String, String> estraiParametri(String query) {
         Map<String, String> parametri = new HashMap<>();
-        
+
         if (query == null || query.isEmpty()) {
             return parametri;
         }
-        
+
         String[] coppie = query.split("&");
         for (String coppia : coppie) {
-            String[] keyValue = coppia.split("=");
+            String[] keyValue = coppia.split("=", 2);
             if (keyValue.length == 2) {
                 try {
-                    String chiave = URLDecoder.decode(keyValue[0], "UTF-8");
-                    String valore = URLDecoder.decode(keyValue[1], "UTF-8");
+                    String chiave = URLDecoder.decode(keyValue[0], StandardCharsets.UTF_8.name());
+                    String valore = URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8.name());
                     parametri.put(chiave, valore);
                 } catch (Exception e) {
                     // Ignora parametri malformati
                 }
             }
         }
-        
+
         return parametri;
     }
-    
-    /**
-     * Invia una risposta di successo
-     */
-    private void inviaRisposta(HttpExchange exchange, int codice, String jsonRisposta) 
+
+    private void inviaRisposta(HttpExchange exchange, int codice, String jsonRisposta)
             throws IOException {
-        
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
         exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
-        
+
         byte[] bytes = jsonRisposta.getBytes(StandardCharsets.UTF_8);
         exchange.sendResponseHeaders(codice, bytes.length);
-        
-        OutputStream os = exchange.getResponseBody();
-        os.write(bytes);
-        os.close();
+
+        try (OutputStream os = exchange.getResponseBody()) {
+            os.write(bytes);
+        }
     }
-    
-    /**
-     * Invia una risposta di errore in formato JSON
-     */
-    private void inviaErrore(HttpExchange exchange, int codice, String messaggio) 
+
+    private void inviaErrore(HttpExchange exchange, int codice, String messaggio)
             throws IOException {
-        
         Map<String, Object> errore = new HashMap<>();
         errore.put("errore", messaggio);
         errore.put("status", codice);
-        
+
         String jsonErrore = gson.toJson(errore);
         inviaRisposta(exchange, codice, jsonErrore);
     }
+
 }
