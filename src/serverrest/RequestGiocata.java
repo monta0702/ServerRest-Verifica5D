@@ -10,39 +10,35 @@ package serverrest;
  */
 public class RequestGiocata {
     
-    private Integer giocata;
-    private String numeroUscito;
-    
-    
-    // Costruttore vuoto necessario per GSON
+   private String giocata;
+    private String numero;
+
     public RequestGiocata() {
     }
-    
-    // Costruttore con parametri  
 
-    public RequestGiocata(Integer giocata, String numeroUscito) {
+    public RequestGiocata(String giocata, String numero) {
         this.giocata = giocata;
-        this.numeroUscito = numeroUscito;
+        this.numero = numero;
     }
 
-    public Integer getGiocata() {
+    public String getGiocata() {
         return giocata;
     }
 
-    public void setGiocata(Integer giocata) {
+    public void setGiocata(String giocata) {
         this.giocata = giocata;
     }
 
-    public String getNumeroUscito() {
-        return numeroUscito;
+    public String getNumero() {
+        return numero;
     }
 
-    public void setNumeroUscito(String numeroUscito) {
-        this.numeroUscito = numeroUscito;
+    public void setNumero(String numero) {
+        this.numero = numero;
     }
 
     @Override
     public String toString() {
-        return "RequestGiocata{" + "giocata=" + giocata + ", numeroUscito=" + numeroUscito + '}';
+        return "RequestGiocata{" + "giocata='" + giocata + '\'' + ", numero='" + numero + '\'' + '}';
     }
 }
