@@ -15,18 +15,25 @@ public class App {
     /**
      * @param args the command line arguments
      */
+    private static final int PORTA_DEFAULT = 8080;
+
     public static void main(String[] args) {
-        // Configurazione porta DA FARE
-        int porta = 0;
+        int porta = PORTA_DEFAULT;
+
         if (args.length > 0) {
             try {
                 porta = Integer.parseInt(args[0]);
+                if (porta < 1 || porta > 65535) {
+                    System.err.println("Porta fuori range, uso porta default 8080");
+                    porta = PORTA_DEFAULT;
+                }
             } catch (NumberFormatException e) {
                 System.err.println("Porta non valida, uso porta default 8080");
+                porta = PORTA_DEFAULT;
             }
         }
-        
-        // Avvia il server REST
+
         ServerRest.avviaServer(porta);
     }
+
 }
